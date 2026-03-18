@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { addVote, getSessionSummary } from '@/lib/voteStorage';
+import { addVote, getSessionSummary, clearSession } from '@/lib/voteStorage';
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,6 +43,19 @@ export async function GET() {
     endpoints: {
       POST: '/api/vote - Submit a vote',
       GET: '/api/vote - This info',
+      DELETE: '/api/vote?sessionId=xxx - Reset votes',
     },
   });
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const sessionId = searchParams.get('sessionId') || undefined;
+    clearSession(sessionId);
+    return NextResponse.json({ success: true, message: sessionId ? `Session '${sessionId}' cleared` : 'All sessions cleared' });
+  } catch (error) {
+    console.error('Error resetting votes:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

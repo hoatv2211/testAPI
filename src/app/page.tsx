@@ -24,27 +24,23 @@ export default function Home() {
   const [hostInfo, setHostInfo] = useState<HostInfo | null>(null);
 
   useEffect(() => {
-    // Get host IP from server
-    const fetchHostInfo = async () => {
-      try {
-        const res = await fetch('/api/host');
-        const data = await res.json();
-        setHostInfo(data);
-        setVoteUrl(`${data.url}/vote?session=${sessionId}`);
-      } catch (err) {
-        // Fallback to localhost
-        setHostInfo({ ip: 'localhost', port: 3000, url: 'http://localhost:3000' });
-        setVoteUrl(`http://localhost:3000/vote?session=${sessionId}`);
-      }
-    };
-
-    fetchHostInfo();
+    const baseUrl = 'https://test-api-nine-rouge.vercel.app';
+    setVoteUrl(`${baseUrl}/vote?session=${sessionId}`);
 
     // Fetch live summary
     fetchSummary();
     const interval = setInterval(fetchSummary, 3000);
     return () => clearInterval(interval);
   }, [sessionId]);
+
+  const handleReset = async () => {
+    try {
+      await fetch(`/api/vote?sessionId=${sessionId}`, { method: 'DELETE' });
+      fetchSummary();
+    } catch (err) {
+      console.error('Error resetting votes:', err);
+    }
+  };
 
   const fetchSummary = async () => {
     try {
@@ -92,6 +88,22 @@ export default function Home() {
             <span className="percentage-hinder">{summary.hinderCount} HINDER</span>
           </div>
           <p className="total-votes">{summary.total} votes</p>
+          <button
+            onClick={handleReset}
+            style={{
+              marginTop: '1rem',
+              padding: '0.5rem 1.5rem',
+              background: '#dc3545',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '0.9rem',
+              fontWeight: 'bold',
+            }}
+          >
+            Reset Votes
+          </button>
         </div>
       )}
 
